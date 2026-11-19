@@ -1,5 +1,50 @@
-> **Orca Hữu Luân** là bản Orca tuỳ biến dựa trên Orca gốc v1.4.220 và [Orca Bình Minh](https://github.com/bminhnemhoi/orca-binh-minh).
-> Repository này chia sẻ mã nguồn. Xem [hướng dẫn cài và tự build](binhminh/CAI-DAT.md) và [các thay đổi cho Góc Hữu Luân](binhminh/docs/huu-luan-companion.md). Phần dưới là README gốc của Orca.
+<h1 align="center">Orca Hữu Luân</h1>
+
+<p align="center">
+  Orca dành cho người thích làm việc cùng nhiều agent AI, với một góc nhỏ mang dấu ấn Hữu Luân.
+</p>
+
+<p align="center">
+  <a href="#diem-rieng-cua-ban-nay">Điểm riêng</a> ·
+  <a href="#bat-dau-tu-ma-nguon">Bắt đầu</a> ·
+  <a href="binhminh/docs/huu-luan-companion.md">Góc Hữu Luân</a>
+</p>
+
+> [!NOTE]
+> Đây là **mã nguồn**, chưa có gói cài đặt Orca Hữu Luân trong Releases. Phần README Orca gốc ở bên dưới có thể dẫn tới bản tải của dự án gốc.
+
+## Điểm riêng của bản này
+
+| Góc Hữu Luân | Trải nghiệm |
+| --- | --- |
+| Tên hiển thị | Chỉnh trực tiếp trong Cài đặt; chữ ký trên thanh ứng dụng đổi theo. |
+| Doraemon | Thú cưng 3D có chuyển động, âm thanh và hình phẳng dự phòng. |
+| Luffy Gear 5 | Ảnh trang trí cạnh thú cưng, có công tắc bật/tắt. |
+| Giọng Việt | Lời thoại cho một số trạng thái của agent; có thể tắt riêng. |
+| Theo dõi công việc | Thẻ hạn mức, CPU/RAM, lời nhắc và tín hiệu khi agent cần bạn. |
+
+Chi tiết cách dùng: [Doraemon và Luffy trong Góc Hữu Luân](binhminh/docs/huu-luan-companion.md).
+
+## Bắt đầu từ mã nguồn
+
+Trên Windows, cài Git, Node.js 24 và pnpm 12.8.1 cùng các công cụ build theo [hướng dẫn nền của Orca Bình Minh](binhminh/CAI-DAT.md#bước-1-cài-công-cụ-một-lần). Sau đó:
+
+```powershell
+git clone https://github.com/luan0217091310-gif/setup-orca.git
+cd setup-orca
+pnpm install
+powershell -File binhminh\Build-Orca-BinhMinh.ps1 -SkipTypecheck
+```
+
+Script build hiện vẫn mang tên **Bình Minh** và dùng thư mục cài đặt của bản nền. Chưa có build đầy đủ được xác nhận từ checkout này; nếu cần bản dùng ngay, hãy đợi bản phát hành của repository này.
+
+## Nguồn gốc
+
+Bản này dựa trên [Orca gốc](https://github.com/stablyai/orca), [LamngOrca](https://github.com/Towfienes/LamngOrca) và [Orca Bình Minh](https://github.com/bminhnemhoi/orca-binh-minh). Giữ nguyên giấy phép và ghi nhận tác giả của các dự án nền.
+
+---
+
+## README Orca gốc
 
 <h1 align="center">
   <a href="https://onOrca.dev"><img src="resources/build/icon.png" alt="Orca" width="64" valign="middle" /></a> Orca
