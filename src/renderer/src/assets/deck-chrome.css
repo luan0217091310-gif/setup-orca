@@ -1,0 +1,415 @@
+/* Deck's compact rail, using Orca's theme roles and existing workspace actions. */
+.deck-workspace-shell {
+  --workspace-canvas: var(--worktree-sidebar);
+  background: var(--workspace-canvas);
+  --bg-titlebar: var(--workspace-canvas);
+  --sidebar: var(--worktree-sidebar);
+}
+
+.deck-workspace-shell .titlebar-left {
+  box-shadow: none;
+}
+
+.deck-signature {
+  width: 112px;
+  height: 32px;
+  flex-shrink: 1;
+  min-width: 32px;
+  margin-inline: 8px;
+  color: var(--foreground);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.deck-workspace-shell [data-tab-group-strip-id],
+.deck-workspace-shell [data-terminal-focus-release-surface] {
+  background: var(--workspace-canvas);
+  border-bottom-color: transparent;
+}
+
+.deck-terminal-surface,
+.deck-terminal-surface ~ .pane-title-overlay-layer {
+  inset: 6px;
+  --orca-pane-title-height: 32px;
+}
+
+.deck-terminal-surface {
+  background: var(--workspace-canvas) !important;
+}
+
+.deck-terminal-surface .pane-divider:not(:hover):not(.is-dragging)::after {
+  background: transparent;
+}
+
+.deck-sidebar.deck-sidebar {
+  border-right-color: transparent;
+}
+
+.deck-workspace-shell .deck-tab-layout,
+.deck-workspace-shell .deck-tab-layout .group\/tab-group,
+.deck-sidebar-toolbar,
+.deck-status-bar,
+.deck-right-sidebar [class~='border-b'],
+.deck-right-sidebar [class~='border-l'],
+.deck-right-sidebar [class~='border-t'] {
+  border-color: transparent;
+}
+
+.app-layout:has(#deck-titlebar-status) .deck-status-bar {
+  display: none;
+}
+
+.deck-right-sidebar .deck-usage-panel {
+  border-top-color: var(--sidebar-border);
+}
+
+.deck-cost-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+}
+
+.deck-cost-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--chart-1);
+}
+
+[data-usage-provider='claude'] .deck-cost-fill {
+  background: var(--chart-2);
+}
+
+.deck-file-tree-guides {
+  position: absolute;
+  inset: 0 auto 0 8px;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 5px,
+    color-mix(in srgb, var(--foreground) 12%, transparent) 5px 6px,
+    transparent 6px 16px
+  );
+}
+
+.deck-right-sidebar [data-ignore-file-explorer-keys] {
+  border-color: transparent;
+}
+
+.deck-right-sidebar [data-ignore-file-explorer-keys]:focus-within {
+  border-color: var(--ring);
+}
+
+.deck-titlebar-status {
+  position: fixed;
+  inset: 0 0 auto auto;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: safe flex-end;
+  gap: 8px;
+  width: var(--window-controls-width);
+  height: 36px;
+  padding-inline: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+  font-size: 12px;
+  background: var(--worktree-sidebar);
+  -webkit-app-region: no-drag;
+}
+
+.deck-titlebar-status > * {
+  flex-shrink: 0;
+}
+
+.deck-create-bar {
+  container-type: inline-size;
+  padding: 8px 10px;
+}
+
+.deck-agent-actions {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  width: 100%;
+  align-items: center;
+  justify-items: center;
+  gap: 4px;
+}
+
+.deck-agent-quick-button {
+  display: inline-flex;
+}
+
+@container (max-width: 284px) {
+  .deck-agent-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.deck-sidebar.deck-sidebar .deck-sidebar-options {
+  margin-top: 0;
+  height: 28px;
+}
+
+.deck-sidebar-options [data-sidebar-section-title],
+.deck-sidebar-options [data-sidebar-header-actions] > button {
+  display: none;
+}
+
+.deck-sidebar-options > div:last-child {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.deck-workspace-shell .deck-sidebar.deck-sidebar [data-worktree-card-surface] {
+  border-width: 1.5px;
+  border-radius: var(--radius-sm);
+  border-color: transparent;
+  box-shadow: none;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.deck-sidebar.deck-sidebar [data-worktree-card-surface]:has([data-deck-agent]) {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.deck-sidebar.deck-sidebar [data-worktree-card-surface][data-worktree-card-active] {
+  @apply sidebar-glass;
+}
+
+.deck-sidebar.deck-sidebar
+  [data-worktree-card-surface]:has([data-deck-agent])
+  [data-worktree-card-status-slot] {
+  display: none;
+}
+
+.deck-sidebar.deck-sidebar [data-worktree-card-hover-trigger] {
+  color: var(--muted-foreground);
+  gap: 2px;
+}
+
+.deck-sidebar.deck-sidebar [data-worktree-card-parent-content] > div:last-child {
+  gap: 4px;
+}
+
+.deck-sidebar.deck-sidebar [role='group']:has(> [data-deck-agent]),
+.deck-sidebar.deck-sidebar [role='tree']:has(> [data-deck-agent]) {
+  border-left: 1px solid color-mix(in srgb, var(--worktree-sidebar-foreground) 12%, transparent);
+  margin-left: 4px;
+  padding-left: 8px;
+}
+
+.deck-sidebar.deck-sidebar [data-deck-agent] {
+  min-height: 28px;
+  margin: 1px 0;
+  padding: 4px 4px 4px 30px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+.deck-sidebar [data-deck-agent] .deck-agent-heading {
+  position: relative;
+}
+
+.deck-sidebar.deck-sidebar [data-deck-agent] .deck-agent-state-slot {
+  position: absolute;
+  left: -28px;
+  width: 10px;
+  height: 10px;
+  top: calc(50% + 6px);
+  transform: translateY(-50%);
+  border: 1px solid var(--worktree-sidebar);
+  border-radius: 50%;
+  background: var(--worktree-sidebar);
+  z-index: 1;
+}
+
+.deck-sidebar.deck-sidebar [data-deck-agent] .deck-agent-icon-slot {
+  position: absolute;
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.deck-sidebar .deck-agent-state-slot [data-agent-spinner] {
+  border-width: 1px;
+}
+
+.deck-sidebar .deck-agent-state-slot svg {
+  width: 8px;
+  height: 8px;
+}
+
+.deck-sidebar [data-deck-agent-state='waiting'] .deck-agent-state-slot svg,
+.deck-sidebar [data-deck-agent-state='permission'] .deck-agent-state-slot svg {
+  width: 10px;
+  height: 10px;
+  color: var(--workspace-status-progress);
+}
+
+.deck-sidebar.deck-sidebar [data-deck-agent] .deck-agent-heading > span[title].flex-1 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.deck-sidebar.deck-sidebar [data-deck-agent] > :not(.deck-agent-heading, .deck-agent-summary) {
+  display: none;
+}
+
+.deck-agent-summary {
+  display: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.deck-sidebar.deck-sidebar [data-deck-agent-state='waiting'] {
+  border-color: transparent;
+}
+
+.deck-sidebar.deck-sidebar [data-deck-agent][data-focused-agent-pane='true'] {
+  background: transparent;
+  border-color: transparent;
+  color: var(--foreground);
+}
+
+.deck-sidebar .compact-agent-row[data-focused-agent-pane='true'] {
+  background: transparent;
+}
+
+/* Inset outlines leave the pane manager's measured terminal geometry untouched. */
+[data-terminal-tab-id] .pane {
+  background: var(--orca-pane-title-bg);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+[data-terminal-tab-id] .pane::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  z-index: 25;
+}
+
+[data-terminal-tab-id] .pane[data-agent-waiting]::after {
+  border-width: 1.5px;
+  border-color: var(--workspace-status-progress);
+}
+
+[data-terminal-tab-id] .pane.pane-focus-rim-flash::before,
+[data-terminal-tab-id] .pane[data-terminal-attention] .xterm-container::after {
+  content: none;
+}
+
+.pane-title-overlay-layer .pane-title-bar[data-pane-draggable] {
+  cursor: grab;
+}
+
+.pane-title-overlay-layer .pane-title-bar {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--orca-pane-title-fg);
+  background: color-mix(in srgb, var(--orca-pane-title-fg) 8%, var(--orca-pane-title-bg));
+  border: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.pane-title-overlay-layer .pane-title-bar[data-editing] {
+  cursor: default;
+}
+
+.pane-title-bar .pane-title-actions {
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.pane-title-bar:hover .pane-title-actions,
+.pane-title-bar:focus-within .pane-title-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .pane-title-bar .pane-title-actions {
+    opacity: 1;
+  }
+}
+
+.pane-title-overlay-layer .pane-title-bar[data-chromeless] {
+  pointer-events: auto;
+  padding-inline: 8px;
+}
+
+.pane-title-overlay-layer .pane-title-bar[data-active-pane] {
+  background: var(--orca-pane-title-bg);
+  border-color: transparent;
+}
+
+.pane-title-overlay-layer .pane-title-bar[data-chromeless] .pane-title-split-trigger::before,
+.pane-title-overlay-layer .pane-title-bar[data-chromeless] .pane-title-close::before {
+  content: none;
+}
+
+.pane-title-overlay-layer .pane-title-bar[data-chromeless] .pane-title-split-trigger svg,
+.pane-title-overlay-layer .pane-title-bar[data-chromeless] .pane-title-close svg {
+  stroke-width: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pane-title-bar .pane-title-actions {
+    transition: none;
+  }
+}
+.pane-title-bar .pane-title-text,
+.pane-title-bar .deck-pane-identity {
+  max-width: 72ch;
+}
+
+.deck-pane-identity > span > span[title]:only-child {
+  max-width: 100%;
+}
+.pane-title-overlay-layer .pane-title-bar {
+  height: var(--orca-pane-title-height);
+}
+[data-terminal-tab-id] .pane .xterm-container {
+  margin-top: var(--orca-pane-title-height);
+  height: calc(100% - var(--orca-pane-title-height));
+}
+[data-terminal-tab-id] .pane:has(> .pane-top-banner) .xterm-container {
+  margin-top: calc(var(--orca-pane-title-height) + var(--orca-pane-top-banner-height, 0px));
+  height: calc(100% - var(--orca-pane-title-height) - var(--orca-pane-top-banner-height, 0px));
+}
+[data-terminal-tab-id] .pane .pane-top-banner {
+  top: var(--orca-pane-title-height);
+}
+
+.deck-sidebar [data-worktree-card-surface]:has([data-deck-agent]) [data-worktree-card-meta-row],
+.deck-sidebar [data-deck-primary-worktree] {
+  display: none;
+}
+.deck-branch-glyph {
+  display: none;
+}
+.deck-sidebar .deck-branch-glyph {
+  display: inline-flex;
+}
+.deck-sidebar [data-deck-agent] [role='button']:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Indentation alone shows repo membership; keep selection frames unchanged. */
+.deck-sidebar [data-repo-worktree-tree='branch'],
+.deck-sidebar [data-repo-worktree-tree='last'] {
+  margin-inline-start: 12px;
+}

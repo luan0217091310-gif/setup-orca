@@ -1,0 +1,395 @@
+import type { CSSProperties, RefObject } from 'react'
+import {
+  MessageSquare,
+  MessageSquarePlus,
+  SquareSplitVertical,
+  SquareTerminal,
+  X
+} from 'lucide-react'
+import type { ManagedPane, PaneManager } from '@/lib/pane-manager/pane-manager'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { translate } from '@/i18n/i18n'
+import { WORKSPACE_FILE_PATH_MIME, WORKSPACE_FILE_PATHS_MIME } from '@/lib/workspace-file-drag'
+import { isImeCompositionKeyDown } from '@/lib/ime-composition-keyboard-event'
+import type { PtyTransport } from './pty-transport'
+import { handleInternalTerminalFileDrop } from './terminal-drop-handler'
+import { makePaneKey } from '../../../../shared/stable-pane-id'
+import { DeckPaneIdentity } from './DeckPaneIdentity'
+import { shouldFollowMouseFocus } from '@/lib/pane-manager/focus-follows-mouse'
+
+export type PaneTitleOverlayRect = {
+  left: number
+  top: number
+  width: number
+}
+
+type TerminalPaneHeaderOverlayProps = {
+  tabId: string
+  focusFollowsMouse?: boolean
+  worktreeId: string
+  cwd: string
+  showAlwaysOnHeaders: boolean
+  /** Used by ephemeral one-off command terminals that omit the header affordance. */
+  showSplitButton?: boolean
+  isTabPinned: boolean
+  paneCount: number
+  activePaneId: number | null | undefined
+  panes: readonly ManagedPane[]
+  paneTitles: Readonly<Record<number, string>>
+  paneTitleOverlayRects: Readonly<Record<number, PaneTitleOverlayRect>>
+  renamingPaneId: number | null
+  renameValue: string
+  renameInputRef: RefObject<HTMLInputElement | null>
+  titleUsesLightSurface: boolean
+  paneTitleBackground: string
+  terminalContentVisible: boolean
+  hiddenStartupStyle: CSSProperties
+  managerRef: RefObject<PaneManager | null>
+  paneTransportsRef: RefObject<Map<number, PtyTransport>>
+  /** Only bridge chat has a terminal underneath; the caller gates this to the active pane. */
+  canToggleNativeChat?: boolean
+  isChatViewMode?: boolean
+  onToggleNativeChat?: () => void
+  canContinueAgentSessionInNewSession?: boolean
+  onContinueAgentSessionInNewSession?: (pane: ManagedPane) => void
+  onSplitPane: (pane: ManagedPane, direction: 'vertical' | 'horizontal') => void
+  onBeginPaneDrag: (paneId: number, handle: HTMLElement, event: PointerEvent) => void
+  onActivatePaneTitleInteraction: (paneId: number) => void
+  onPaneTitleContextMenu: (event: React.MouseEvent<HTMLElement>, paneId: number) => void
+  onStartRename: (paneId: number) => void
+  onRemoveTitle: (paneId: number) => void
+  onClosePane: (paneId: number) => void
+  onRenameValueChange: (value: string) => void
+  onRenameSubmit: () => void
+  onRenameCancel: () => void
+  onRenameBlur: () => void
+}
+
+export default function TerminalPaneHeaderOverlay({
+  tabId,
+  focusFollowsMouse = false,
+  worktreeId,
+  cwd,
+  showAlwaysOnHeaders,
+  showSplitButton = true,
+  isTabPinned,
+  paneCount,
+  activePaneId,
+  panes,
+  paneTitles,
+  paneTitleOverlayRects,
+  renamingPaneId,
+  renameValue,
+  renameInputRef,
+  titleUsesLightSurface,
+  paneTitleBackground,
+  terminalContentVisible,
+  hiddenStartupStyle,
+  managerRef,
+  paneTransportsRef,
+  canToggleNativeChat,
+  isChatViewMode,
+  onToggleNativeChat,
+  canContinueAgentSessionInNewSession,
+  onContinueAgentSessionInNewSession,
+  onSplitPane,
+  onBeginPaneDrag,
+  onActivatePaneTitleInteraction,
+  onPaneTitleContextMenu,
+  onStartRename,
+  onRemoveTitle,
+  onClosePane,
+  onRenameValueChange,
+  onRenameSubmit,
+  onRenameCancel,
+  onRenameBlur
+}: TerminalPaneHeaderOverlayProps): React.JSX.Element {
+  const splitRightLabel = translate(
+    'auto.components.terminal.pane.TerminalContextMenu.20e565d865',
+    'Split Terminal Right'
+  )
+  const paneTitleLabel = translate(
+    'auto.components.terminal.pane.TerminalPane.7dbbfcbecc',
+    'Pane title'
+  )
+  const continueLabel = translate(
+    'components.agentSessionContinuation.continueInNewSession',
+    'Continue in New Session…'
+  )
+  const chatToggleLabel = isChatViewMode
+    ? translate('components.native-chat.toggle.showTerminal', 'Show terminal')
+    : translate('components.native-chat.toggle.showChat', 'Show chat view')
+  const ChatToggleIcon = isChatViewMode ? SquareTerminal : MessageSquare
+
+  return (
+    <div
+      className="pane-title-overlay-layer"
+      data-pane-title-surface={titleUsesLightSurface ? 'light' : 'dark'}
+      style={{
+        display: terminalContentVisible ? undefined : 'none',
+        ['--orca-pane-title-bg' as string]: paneTitleBackground,
+        ...hiddenStartupStyle
+      }}
+    >
+      {panes.map((pane) => {
+        const title = paneTitles[pane.id]
+        const isEditing = renamingPaneId === pane.id
+        const overlayRect = paneTitleOverlayRects[pane.id]
+        const isActivePane = activePaneId === pane.id
+        const isChromeless = showAlwaysOnHeaders && !title && !isEditing
+        const showHeader = overlayRect && (showAlwaysOnHeaders || Boolean(title) || isEditing)
+        const closeLabel =
+          paneCount > 1
+            ? translate(
+                'auto.components.terminal.pane.TerminalContextMenu.8c17d6786d',
+                'Close Pane'
+              )
+            : translate('auto.components.tab.bar.SortableTab.95db5f2f7d', 'Close tab')
+        // A titled single pane still needs a close control; split titles use X to remove the title.
+        const showCloseButton =
+          showAlwaysOnHeaders && (paneCount > 1 ? !title : showSplitButton && !isTabPinned)
+        if (!showHeader || !overlayRect) {
+          return null
+        }
+
+        return (
+          <div
+            key={`pane-title-${pane.leafId}`}
+            className="pane-title-bar"
+            data-native-file-drop-target="terminal"
+            data-terminal-tab-id={tabId}
+            data-pane-prevent-terminal-focus=""
+            data-pane-draggable={paneCount > 1 && !isEditing ? '' : undefined}
+            {...(isActivePane ? { 'data-active-pane': '' } : {})}
+            {...(isChromeless ? { 'data-chromeless': '' } : {})}
+            {...(isEditing ? { 'data-editing': '' } : {})}
+            onPointerDownCapture={() => onActivatePaneTitleInteraction(pane.id)}
+            onPointerEnter={(event) => {
+              const manager = managerRef.current
+              if (
+                manager &&
+                shouldFollowMouseFocus({
+                  featureEnabled: focusFollowsMouse,
+                  activePaneId: manager.getActivePane()?.id ?? null,
+                  hoveredPaneId: pane.id,
+                  mouseButtons: event.buttons,
+                  windowHasFocus: document.hasFocus(),
+                  managerDestroyed: false
+                })
+              ) {
+                manager.setActivePane(pane.id, { focus: true })
+              }
+            }}
+            onPointerDown={(event) => {
+              if (
+                paneCount > 1 &&
+                !isEditing &&
+                event.target instanceof Element &&
+                !event.target.closest('.pane-title-actions, input')
+              ) {
+                onBeginPaneDrag(pane.id, event.currentTarget, event.nativeEvent)
+              }
+            }}
+            onDragOver={(event) => {
+              onActivatePaneTitleInteraction(pane.id)
+              if (
+                event.dataTransfer.types.includes(WORKSPACE_FILE_PATH_MIME) ||
+                event.dataTransfer.types.includes(WORKSPACE_FILE_PATHS_MIME)
+              ) {
+                event.preventDefault()
+                event.dataTransfer.dropEffect = 'copy'
+              }
+            }}
+            onDrop={(event) => {
+              if (
+                !event.dataTransfer.types.includes(WORKSPACE_FILE_PATH_MIME) &&
+                !event.dataTransfer.types.includes(WORKSPACE_FILE_PATHS_MIME)
+              ) {
+                return
+              }
+              event.preventDefault()
+              event.stopPropagation()
+              onActivatePaneTitleInteraction(pane.id)
+              const manager = managerRef.current
+              if (!manager) {
+                return
+              }
+              void handleInternalTerminalFileDrop({
+                manager,
+                paneTransports: paneTransportsRef.current,
+                worktreeId,
+                tabId,
+                cwd,
+                dataTransfer: event.dataTransfer,
+                dropTarget: event.target
+              })
+            }}
+            onContextMenuCapture={(event) => onPaneTitleContextMenu(event, pane.id)}
+            style={overlayRect}
+          >
+            {isEditing ? (
+              <input
+                ref={renameInputRef}
+                className="pane-title-input"
+                aria-label={paneTitleLabel}
+                placeholder={paneTitleLabel}
+                value={renameValue}
+                onChange={(event) => onRenameValueChange(event.target.value)}
+                onKeyDown={(event) => {
+                  // IME candidate confirmation must not commit the rename.
+                  if (isImeCompositionKeyDown(event)) {
+                    return
+                  }
+                  if (event.key === 'Enter') {
+                    onRenameSubmit()
+                  } else if (event.key === 'Tab') {
+                    // Commit directly because headless and SSH windows may not blur on Tab.
+                    onRenameSubmit()
+                  } else if (event.key === 'Escape') {
+                    onRenameCancel()
+                  }
+                }}
+                onBlur={onRenameBlur}
+              />
+            ) : (
+              <>
+                {paneCount > 1 && !isChromeless && (
+                  <div className="pane-title-drag-handle" aria-hidden="true" />
+                )}
+                <DeckPaneIdentity
+                  paneKey={makePaneKey(tabId, pane.leafId)}
+                  title={title}
+                  onEditTitle={() => onStartRename(pane.id)}
+                />
+                <div className="pane-title-actions ml-auto flex shrink-0 items-center gap-0">
+                  {canContinueAgentSessionInNewSession && isActivePane ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="pane-title-split-trigger"
+                          aria-label={continueLabel}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onContinueAgentSessionInNewSession?.(pane)
+                          }}
+                        >
+                          <MessageSquarePlus className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={4}>
+                        {continueLabel}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                  {canToggleNativeChat && isActivePane ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="pane-title-split-trigger"
+                          aria-label={chatToggleLabel}
+                          aria-pressed={isChatViewMode}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onToggleNativeChat?.()
+                          }}
+                        >
+                          <ChatToggleIcon className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={4}>
+                        {chatToggleLabel}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                  {showAlwaysOnHeaders && showSplitButton ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="pane-title-split-trigger"
+                          data-contextual-tour-target={
+                            isActivePane ? 'terminal-pane-split-target' : undefined
+                          }
+                          aria-label={splitRightLabel}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onSplitPane(pane, 'vertical')
+                          }}
+                        >
+                          <SquareSplitVertical className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={4}>
+                        {splitRightLabel}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                  {title ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="pane-title-close"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onRemoveTitle(pane.id)
+                          }}
+                          aria-label={translate(
+                            'auto.components.terminal.pane.TerminalPane.f984ab2a30',
+                            'Remove pane title: {{value0}}',
+                            { value0: title }
+                          )}
+                        >
+                          <X className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={4}>
+                        {translate(
+                          'auto.components.terminal.pane.TerminalPane.ac112e9036',
+                          'Remove title'
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                  {showCloseButton ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="pane-title-close"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onClosePane(pane.id)
+                          }}
+                          aria-label={closeLabel}
+                        >
+                          <X className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={4}>
+                        {closeLabel}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
