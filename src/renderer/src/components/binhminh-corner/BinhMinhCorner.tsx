@@ -69,6 +69,12 @@ export function BinhMinhCorner(): React.JSX.Element | null {
   }
   const needsTargets = counts.attention > 0 && (settings.needsYou || settings.pet.enabled)
   const photoReady = settings.photo.enabled && settings.photo.ids.length > 0
+  const activity =
+    counts.attention > 0
+      ? `${counts.attention} cần bạn`
+      : counts.working > 0
+        ? `${counts.working} đang làm`
+        : 'Yên tĩnh'
   return (
     <div
       className="bm-corner deck-binhminh-corner min-h-0 shrink-0 overflow-y-auto border-t scrollbar-sleek"
@@ -79,6 +85,15 @@ export function BinhMinhCorner(): React.JSX.Element | null {
         <Ambient photoId={settings.photo.ids[0]!} />
       ) : null}
       <div className="bm-layer space-y-2.5 p-3">
+        <header className="flex items-center justify-between gap-2 border-b border-[var(--w-border)] pb-2.5">
+          <div className="min-w-0">
+            <p className="bm-t3 text-[11px] font-semibold uppercase tracking-wide">Góc của bạn</p>
+            <h2 className="bm-t1 truncate text-sm font-semibold">{settings.displayName}</h2>
+          </div>
+          <span className="bm-t2 shrink-0 rounded-full border border-[var(--w-border)] px-2 py-1 text-[11px]">
+            {activity}
+          </span>
+        </header>
         {settings.pet.enabled ? (
           <CornerPet
             settings={settings}

@@ -124,7 +124,7 @@ export function CornerPet({
   return (
     <section
       aria-label="Thú cưng"
-      className="bm-companion-row"
+      className="bm-companion-row bm-card px-2.5"
       data-decor={settings.luffyDecor || undefined}
     >
       <button

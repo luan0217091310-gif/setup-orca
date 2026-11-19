@@ -2,6 +2,8 @@
 
 Mở Cài đặt → Góc Hữu Luân → Thú cưng, chọn **Doraemon** và kiểu **3D**. Tên thú cưng vẫn chỉnh ở ô Tên thú cưng; mặc định của bản cá nhân hóa là Bekane.
 
+Đầu Góc Hữu Luân hiển thị tên bạn đã đặt và trạng thái agent: đang làm, cần bạn hoặc yên tĩnh. Thú cưng nằm trong một thẻ riêng ngay bên dưới.
+
 - Avatar có khung 60 × 60 px. Doraemon có chong chóng quay, chớp mắt, nhấp nhô và phản ứng khi bấm.
 - Luffy là ảnh trang trí 78 × 78 px ở cột riêng trong hàng cao 84 px. Ảnh không bắt chuột và được giới hạn trong hàng, không phủ thẻ hạn mức hay CPU/RAM.
 - **Luffy Gear 5** bật/tắt ảnh trang trí. **Giọng nói tiếng Việt** bật/tắt lời thoại, độc lập với hiệu ứng ngắn khi Âm thanh đang bật.
